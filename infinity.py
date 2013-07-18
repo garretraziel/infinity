@@ -61,7 +61,8 @@ def load_tests(path):
 def run_test(test):
     inflogging.create_test_logs(test.name)
     test.vm = base.build(test.vm_xml)
-    xpng = Xpresserng()
+    xpng = Xpresserng(test.vm.ip, test.vm.port)
+    test.load_xpng(xpng)
 
 
 def run(path, config):

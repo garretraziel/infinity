@@ -68,7 +68,7 @@ def clean_domain():
 class VirtualMachine(object):
     """Class for preserving information about virtual machines."""
 
-    def __init__(self, domain, port, storage, storage_path, pool):
+    def __init__(self, domain, ip, port, storage, storage_path, pool):
         """Initializes VirtualMachine object.
 
         Keyword arguments:
@@ -80,6 +80,7 @@ class VirtualMachine(object):
 
         """
         self.domain = domain
+        self.ip = ip
         self.port = port
         self.storage = storage
         self.storage_path = storage_path
