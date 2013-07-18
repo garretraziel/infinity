@@ -14,9 +14,8 @@ import libvirt
 import inflogging
 from xml.dom.minidom import parseString
 
-import config
-
 LIBVIRT_CONNECTION = None
+
 
 def clean_domain(conn):
     """Clean existing domain, storage or volume."""
@@ -40,7 +39,6 @@ def clean_domain(conn):
 
 
 class VirtualMachine(object):
-
     """Class for preserving information about virtual machines."""
 
     def __init__(self, domain, port, storage, storage_path, pool):
@@ -151,7 +149,8 @@ def build(path_to_xml="machines/alfa.xml", ram=2097152):
         vol = create_vol(pool, 0, path_dirname, 16)
 
         # change xml configuration to include path
-        xmldesc = xmldesc.format(disk_file=vol.path(), iso_file=os.path.join(path_dirname, "image-live.iso"), ram_size=ram)
+        xmldesc = xmldesc.format(disk_file=vol.path(), iso_file=os.path.join(path_dirname, "image-live.iso"),
+                                 ram_size=ram)
 
         dom = LIBVIRT_CONNECTION.createXML(xmldesc, 0) # creates libvirt domain
         xmlsettings = parseString(dom.XMLDesc(0)) # get XML representation

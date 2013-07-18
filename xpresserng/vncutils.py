@@ -71,7 +71,6 @@ def key_argument_type(argument):
 
 
 class VncTool(object):
-
     """Class for controlling target machine via VNC.
 
     It provides methods for typing on keyboard, clicking with mouse and
@@ -88,12 +87,14 @@ class VncTool(object):
 
     def create_vnc_function(self, host, port, password):
         """Create function which will be used for controlling target machine."""
+
         def run_vncdotool(commands):
             if commands[0] != "capture":
                 logging.debug("#DEBUG reactor:", commands)
-            #TODO: vncdotool cannot be used as a library.... yet
+                #TODO: vncdotool cannot be used as a library.... yet
             subprocess.call(
-                ["python", os.path.join(ABSPATH, "vncdotool/command.py"), "--delay=100", "-s", host + "::" + str(port)] + commands)
+                ["python", os.path.join(ABSPATH, "vncdotool/command.py"), "--delay=100", "-s",
+                 host + "::" + str(port)] + commands)
 
         return run_vncdotool
 

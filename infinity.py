@@ -5,7 +5,9 @@ import ConfigParser
 import importlib
 import os
 import sys
+import inflogging
 from v12n import base
+from xpresserng import Xpresserng
 from inftest import InfinityTest, InfinityException, InfinityTestException
 
 
@@ -46,7 +48,8 @@ def load_tests(path):
 
 
 def run_test(test):
-    base.build()
+    #base.build()
+    pass
 
 
 def run(path, config):
@@ -55,17 +58,22 @@ def run(path, config):
     errors = []
     sys.path.insert(0, path)
     tests = load_tests(os.path.join(path, "inftests.cfg"))
+    inflogging.setup_logging(config.logs)
 
     for test in tests:
         try:
             run_test(test)
         except InfinityTestException as e:
-            sys.stderr.write(e.message+"\n")
+            test.message = e.message
+            if config.verbose:
+                sys.stderr.write(e.message+"\n")
             failed.append(test)
         except InfinityException as e:
+            test.message = e.message
             sys.stderr.write(e.message+"\n")
             errors.append(test)
         except Exception as e:
+            test.message = e.message
             sys.stderr.write(e.message+"\n")
             errors.append(test)
         else:

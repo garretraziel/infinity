@@ -22,3 +22,7 @@ class InfinityTest(object):
 
     def run(self):
         pass
+
+    def load_xpng(self, xpng):
+        self.xpng = xpng
+        self.xpng.load_images(self.images)

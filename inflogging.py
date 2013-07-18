@@ -1,19 +1,28 @@
 import logging
 import datetime
 import os
+from inftest import InfinityException
 
-COMPLETE_LOGS = os.path.join(LOG_DIRECTORY, "complete_logs")
+LOG_DIRECTORY = None
+COMPLETE_LOGS = None
 CURRENT_LOGDIR = None
 TEST_LOGFILE = None
 TEST_START_TIME = None
 
 
-def setup_logging():
-    global COMPLETE_LOGS, CURRENT_LOGDIR
+def setup_logging(path):
+    global COMPLETE_LOGS, CURRENT_LOGDIR, LOG_DIRECTORY
+
+    if not LOG_DIRECTORY:
+        LOG_DIRECTORY = path
+    if not COMPLETE_LOGS:
+        COMPLETE_LOGS = os.path.join(path, "complete_logs")
+
     if not os.path.exists(LOG_DIRECTORY):
         os.mkdir(LOG_DIRECTORY)
     if not os.path.exists(COMPLETE_LOGS):
         os.mkdir(COMPLETE_LOGS)
+
     logging.basicConfig(filename=os.path.join(COMPLETE_LOGS, datetime.datetime.now().isoformat() + '.log'),
                         level=logging.INFO, format="%(asctime)s:%(levelname)s: %(message)s")
     CURRENT_LOGDIR = os.path.join(LOG_DIRECTORY, datetime.datetime.now().isoformat())
@@ -24,7 +33,7 @@ def create_test_logs(test_number):
     # touch log filel
     global CURRENT_LOGDIR, TEST_LOGFILE, TEST_START_TIME
     if not CURRENT_LOGDIR:
-        setup_logging()
+        raise InfinityException("logging was not configured")
     TEST_LOGFILE = os.path.join(CURRENT_LOGDIR, "test_%(testnum)03d.log" % {'testnum': test_number})
     TEST_START_TIME = datetime.datetime.now()
     filename = open(TEST_LOGFILE, "a")
@@ -35,7 +44,7 @@ def log(log_message, log_level):
     global TEST_LOGFILE, TEST_START_TIME
     if not TEST_LOGFILE:
         logging.error("log file not set")
-        return
+        raise InfinityException("log file not set")
     time_from_beggining = str(datetime.datetime.now() - TEST_START_TIME)
     if log_level == "ERROR":
         logging.error(time_from_beggining + ": " + log_message)
