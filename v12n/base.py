@@ -9,19 +9,46 @@ destroying them.
 """
 
 import os
-import sys
 import libvirt
 import inflogging
 from xml.dom.minidom import parseString
 
 LIBVIRT_CONNECTION = None
+MANAGED_VM_DOMAINS = []
 
 
-def clean_domain(conn):
+def setup_v12n(uri, pool_path):
+    global LIBVIRT_CONNECTION
+
+    # connect to libvirt
+    if not LIBVIRT_CONNECTION:
+        LIBVIRT_CONNECTION = libvirt.open(uri)  # needs root access
+
+    # create pool for storages
+    xml_file = open("xml/pool.xml")
+    xml_pool = xml_file.read()
+    xml_pool = xml_pool.format(path=pool_path)
+    if not os.path.exists(pool_path):
+        os.mkdir(pool_path)
+    xml_dom = parseString(xml_pool)
+    xml_pool_name = xml_dom.getElementsByTagName("name")
+    if len(xml_pool_name) != 1:
+        inflogging.log("Bad pool XML.", "ERROR")
+    xml_pool_name = xml_pool_name[0].value
+    if xml_pool_name not in LIBVIRT_CONNECTION.listAllStoragePools(0):
+        LIBVIRT_CONNECTION.storagePoolCreateXML(xml_pool, 0)
+
+
+def clean_domain():
     """Clean existing domain, storage or volume."""
 
-    domains = conn.listAllDomains(0)
-    domains = [domain.name() for domain in domains]
+    global LIBVIRT_CONNECTION
+    if not LIBVIRT_CONNECTION:
+        return
+
+    domains = LIBVIRT_CONNECTION.listAllDomains(0)
+    domains = [(domain.name(), domain) for domain in domains]
+
     if "alfa-infinity" in domains:
         dom = conn.lookupByName("alfa-infinity")
         dom.destroy()

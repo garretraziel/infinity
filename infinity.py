@@ -16,11 +16,16 @@ def load_config(path):
     config.read(path)
     conf = {
         "connection": "qemu:///system",
-        "logs": "/var/log/infinity"
+        "logs": "/var/log/infinity",
+        "pool": "/tmp/infinity-disks"
     }
     try:
-        conf["connection"] = config.get("general", "conn")  # TODO: do defaults better
-        conf["logs"] = config.get("general", "logs")
+        if config.has_option("general", "conn"):
+            conf["connection"] = config.get("general", "conn")
+        if config.has_option("general", "logs"):
+            conf["logs"] = config.get("general", "logs")
+        if config.has_option("general", "pool"):
+            conf["pool"] = config.get("general", "pool")
     except ConfigParser.NoSectionError:
         pass
     return conf
@@ -28,7 +33,7 @@ def load_config(path):
 
 def load_tests(path):
     config = ConfigParser.RawConfigParser()
-    config.read(path)
+    config.read(os.path.join(path, "inftests.cfg"))
 
     tests = []
     for section in config.sections():
@@ -36,20 +41,27 @@ def load_tests(path):
         log_subdir = config.get(section, "log")
         record = config.get(section, "record")
         module = config.get(section, "module")
-        vm_name = config.get(section, "vm")
-        images = config.get(section, "images")
+        vm_xml_file = config.get(section, "vm")
+        xml_file = open(os.path.join(path, vm_xml_file))
+        vm_xml = xml_file.read()
+        xml_file.close()
+        images = os.path.join(path, config.get(section, "images"))
 
-        localmod = importlib.import_module(module + ".main")
-        mainfcn = localmod.main
+        try:
+            imported_module = importlib.import_module(module + ".main")
+            main = imported_module.main
+        except ImportError:
+            raise InfinityException("Test module "+module+" cannot be imported.")
 
-        tests.append(InfinityTest(name, log_subdir, record, mainfcn, vm_name, images))
+        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, images))
 
     return tests
 
 
 def run_test(test):
-    #base.build()
-    pass
+    inflogging.create_test_logs(test.name)
+    test.vm = base.build(test.vm_xml)
+    xpng = Xpresserng()
 
 
 def run(path, config):
@@ -57,8 +69,9 @@ def run(path, config):
     passed = []
     errors = []
     sys.path.insert(0, path)
-    tests = load_tests(os.path.join(path, "inftests.cfg"))
-    inflogging.setup_logging(config.logs)
+    tests = load_tests(path)
+    inflogging.setup_logging(config["logs"])
+    base.setup_v12n(config["connection"], config["pool"])
 
     for test in tests:
         try:
