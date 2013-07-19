@@ -7,7 +7,7 @@ import os
 import sys
 import inflogging
 from v12n import base
-from xpresserng import Xpresserng
+from xpresserng import Xpresserng, ImageNotFound
 from inftest import InfinityTest, InfinityException, InfinityTestException
 
 
@@ -63,6 +63,11 @@ def run_test(test):
     test.vm = base.build(test.vm_xml)
     xpng = Xpresserng(test.vm.ip, test.vm.port)
     test.load_xpng(xpng)
+    try:
+        test.run()
+    except ImageNotFound as e:
+        pass
+    base.tearDown(test.vm)
 
 
 def run(path, config):
