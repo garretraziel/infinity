@@ -15,28 +15,42 @@ from xml.dom.minidom import parseString
 
 LIBVIRT_CONNECTION = None
 MANAGED_VM_DOMAINS = []
+POOL_NAME = None
 
 
 def setup_v12n(uri, pool_path):
-    global LIBVIRT_CONNECTION
+    global LIBVIRT_CONNECTION, POOL_NAME
 
     # connect to libvirt
     if not LIBVIRT_CONNECTION:
         LIBVIRT_CONNECTION = libvirt.open(uri)  # needs root access
 
     # create pool for storages
+    if not POOL_NAME:
+        return
+
     xml_file = open("xml/pool.xml")
     xml_pool = xml_file.read()
     xml_pool = xml_pool.format(path=pool_path)
     if not os.path.exists(pool_path):
         os.mkdir(pool_path)
     xml_dom = parseString(xml_pool)
-    xml_pool_name = xml_dom.getElementsByTagName("name")
-    if len(xml_pool_name) != 1:
+    POOL_NAME = xml_dom.getElementsByTagName("name")
+    if len(POOL_NAME) != 1:
         inflogging.log("Bad pool XML.", "ERROR")
-    xml_pool_name = xml_pool_name[0].value
-    if xml_pool_name not in LIBVIRT_CONNECTION.listAllStoragePools(0):
+    POOL_NAME = POOL_NAME[0].value
+    if POOL_NAME not in LIBVIRT_CONNECTION.listAllStoragePools(0):
         LIBVIRT_CONNECTION.storagePoolCreateXML(xml_pool, 0)
+
+
+def clean_all():
+    """Clean all existing domains, storages and pool."""
+
+    global LIBVIRT_CONNECTION
+    if not LIBVIRT_CONNECTION:
+        return
+
+
 
 
 def clean_domain():

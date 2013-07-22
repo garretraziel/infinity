@@ -21,7 +21,8 @@ class InfinityTest(object):
         self.xpng = None
 
     def run(self):
-        pass
+        self.message = self.main(self.xpng)
+        self.completed = True
 
     def load_xpng(self, xpng):
         self.xpng = xpng
