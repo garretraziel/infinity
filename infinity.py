@@ -5,6 +5,7 @@ import ConfigParser
 import importlib
 import os
 import sys
+import signal
 import inflogging
 from v12n import base
 from inftest import InfinityTest
@@ -68,6 +69,19 @@ def load_tests(path):
     return tests
 
 
+def sigint_signal(signum, frame):
+    if signum == signal.SIGTERM:
+        base.clean_all()
+        sys.exit(0)
+    while True:
+        clean = raw_input("Clean virtual machines? [Y/n]: ")
+        if clean in ["", "Y", "y"]:
+            base.clean_all()
+            sys.exit(0)
+        if clean in ["n", "N"]:
+            sys.exit(0)
+
+
 def run_test(test):
     inflogging.create_test_logs(test.name)
     test.build_vm()
@@ -115,6 +129,9 @@ def run(path, config, verbose):
 
 
 def main():
+    signal.signal(signal.SIGINT, sigint_signal)
+    signal.signal(signal.SIGTERM, sigint_signal)
+
     parser = argparse.ArgumentParser(description="Program for running automatic GUI tests.")
     parser.add_argument("-c", "--config", default="/etc/infinity.cfg",
                         help="path to infinity config file (default: %(default)s)")
