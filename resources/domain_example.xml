@@ -1,7 +1,7 @@
 <domain type='kvm'>
-    <name>{id}</name>
-    <memory unit='KiB'>{ram_size}</memory>
-    <vcpu>{cpu}</vcpu>
+    <name>vm-{id}</name>
+    <memory unit='KiB'>MEMORY_SIZE</memory>
+    <vcpu>NUMBER_OF_CPUS</vcpu>
     <os>
         <type arch='x86_64' machine='pc'>hvm</type>
         <boot dev='hd'/>
@@ -18,12 +18,12 @@
         <emulator>/usr/bin/qemu-system-x86_64</emulator>
         <disk type='file' device='disk'>
             <driver name="qemu" type="qcow2" />
-            <source file='{disk_file}'/>
-            <target dev='hda' bus='{bus}'/>
+            <source file='{disk_path}'/>
+            <target dev='hda' bus='BUS_TYPE'/>
         </disk>
         <disk type='file' device='cdrom'>
-            <source file='{iso_file}'/>
-            <target dev='hdc' bus='{bus}'/>
+            <source file='{live_medium}'/>
+            <target dev='hdc' bus='BUS_TYPE'/>
             <readonly/>
         </disk>
         <interface type='network'>

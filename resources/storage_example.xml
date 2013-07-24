@@ -1,0 +1,9 @@
+<volume>
+  <name>disk-{id}.qcow2</name>
+  <allocation>0</allocation>
+  <capacity unit="G">CAPACITY</capacity>
+  <target>
+    <path>{path}/disk-{id}.qcow2</path>
+    <format type='qcow2'/>
+  </target>
+</volume>
