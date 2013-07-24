@@ -75,11 +75,14 @@ def setup_v12n(uri, pool_path):
     pool_name = pool_name.firstChild.nodeValue
 
     storage_pools = LIBVIRT_CONNECTION.listAllStoragePools(0)
-    storage_pools = [pool.name() for pool in storage_pools]
-    if pool_name not in storage_pools:
+    storage_pool_names = [pool.name() for pool in storage_pools]
+    if pool_name not in storage_pool_names:
         MANAGED_POOL = (LIBVIRT_CONNECTION.storagePoolCreateXML(xml_pool, 0), pool_path)
     else:
-        raise InfinityException("Pool " + pool_name + " already exist, but it's not managed by infinity.")
+        storage_pool = LIBVIRT_CONNECTION.storagePoolLookupByName(pool_name)
+        path = parse_domain_xml(storage_pool.XMLDesc(0), "path")
+        path = path.firstChild.nodeValue
+        MANAGED_POOL = (storage_pool, path)
 
 
 def clean_all():
@@ -137,7 +140,7 @@ def build(vm_xml, storage_xml, live_medium):
     return virtmachine
 
 
-def tearDown(virtmachine):
+def tear_down(virtmachine):
     """Tears down virtual machine."""
     global MANAGED_VM_DOMAINS
 

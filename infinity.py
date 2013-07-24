@@ -33,32 +33,37 @@ def load_config(path):
 
 def load_tests(path):
     config = ConfigParser.RawConfigParser()
-    config.read(os.path.join(path, "inftests.cfg"))
+    config.read(os.path.join(path, "inftests.cfg"))  # TODO: error
 
     tests = []
     for section in config.sections():
         name = config.get(section, "name")
-        log_subdir = config.get(section, "log")
         record = config.get(section, "record")
         module = config.get(section, "module")
-        vm_xml_file = config.get(section, "vm")
-        xml_file = open(os.path.join(path, vm_xml_file))
+
+        get_option = lambda option: config.get(section, option) if os.path.isabs(
+            config.get(section, option)) else os.path.join(path, config.get(section, option))
+
+        vm_xml_path = get_option("vm")
+        xml_file = open(vm_xml_path)
         vm_xml = xml_file.read()
         xml_file.close()
-        storage_xml_file = config.get(section, "storage")
-        xml_file = open(os.path.join(path, storage_xml_file))
+
+        storage_xml_path = get_option("storage")
+        xml_file = open(storage_xml_path)
         storage_xml = xml_file.read()
         xml_file.close()
-        images = os.path.join(path, config.get(section, "images"))
-        live_medium = os.path.join(path, config.get(section, "live_medium"))
+
+        images = get_option("images")
+        live_medium = get_option("live_medium")
 
         try:
             imported_module = importlib.import_module(module + ".main")
             main = imported_module.main
         except ImportError:
-            raise InfinityException("Test module "+module+" cannot be imported.")
+            raise InfinityException("Test module " + module + " cannot be imported.")
 
-        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, storage_xml, live_medium, images))
+        tests.append(InfinityTest(name, record, main, vm_xml, storage_xml, live_medium, images))
 
     return tests
 
@@ -70,7 +75,7 @@ def run_test(test):
     test.tear_down()
 
 
-def run(path, config):
+def run(path, config, verbose):
     failed = []
     passed = []
     errors = []
@@ -85,20 +90,22 @@ def run(path, config):
         except InfinityTestException as e:
             test.message = e.message
             if config.verbose:
-                sys.stderr.write(e.message+"\n")
+                sys.stderr.write(e.message + "\n")
             failed.append(test)
         except InfinityException as e:
             test.message = e.message
-            sys.stderr.write(e.message+"\n")
+            sys.stderr.write(e.message + "\n")
             errors.append(test)
         except Exception as e:
             test.message = e.message
-            sys.stderr.write(e.message+"\n")
+            sys.stderr.write(e.message + "\n")
             errors.append(test)
         else:
             passed.append(test)
 
-    if config.verbose:
+    base.clean_all()
+
+    if verbose:
         print "FAILED:", len(failed)
         for fail in failed:
             if fail.message:
@@ -115,7 +122,7 @@ def main():
     parser.add_argument("directory", default=".", nargs="?", help="directory with tests to run (default: %(default)s)")
     args = parser.parse_args()
     config = load_config(args.config)
-    run(args.directory, config)
+    run(args.directory, config, args.verbose)
 
 
 if __name__ == "__main__":

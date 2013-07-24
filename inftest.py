@@ -3,12 +3,11 @@ from xpresserng import Xpresserng, ImageNotFound
 
 
 class InfinityTest(object):
-    def __init__(self, name, log_dir, record, main, vm_xml, storage_xml, live_medium, images):
+    def __init__(self, name, record, main, vm_xml, storage_xml, live_medium, images):
         self.completed = False
         self.completed_when = None
         self.message = None
         self.name = name
-        self.log_dir = log_dir
         self.record = record
         self.main = main
         self.vm_xml = vm_xml
@@ -19,10 +18,10 @@ class InfinityTest(object):
         self.live_medium = live_medium
 
     def run(self):
-        try:
-            self.message = self.main(self.xpng)
-        except ImageNotFound as e:
-            pass  # TODO
+        #try:
+        self.message = self.main(self.xpng)
+        #except ImageNotFound as e:
+        #    pass  # TODO
         self.completed = True
 
     def build_vm(self):
@@ -31,5 +30,5 @@ class InfinityTest(object):
         self.xpng.load_images(self.images)
 
     def tear_down(self):
-        self.vm.delete()
+        base.tear_down(self.vm)
         #TODO: ...
