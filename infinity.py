@@ -7,7 +7,6 @@ import os
 import sys
 import inflogging
 from v12n import base
-from xpresserng import Xpresserng, ImageNotFound
 from inftest import InfinityTest, InfinityException, InfinityTestException
 
 
@@ -45,7 +44,12 @@ def load_tests(path):
         xml_file = open(os.path.join(path, vm_xml_file))
         vm_xml = xml_file.read()
         xml_file.close()
+        storage_xml_file = config.get(section, "storage")
+        xml_file = open(os.path.join(path, storage_xml_file))
+        storage_xml = xml_file.read()
+        xml_file.close()
         images = os.path.join(path, config.get(section, "images"))
+        live_medium = os.path.join(path, config.get(section, "live_medium"))
 
         try:
             imported_module = importlib.import_module(module + ".main")
@@ -53,21 +57,16 @@ def load_tests(path):
         except ImportError:
             raise InfinityException("Test module "+module+" cannot be imported.")
 
-        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, images))
+        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, storage_xml, images))
 
     return tests
 
 
 def run_test(test):
     inflogging.create_test_logs(test.name)
-    test.vm = base.build(test.vm_xml)
-    xpng = Xpresserng(test.vm.ip, test.vm.port)
-    test.load_xpng(xpng)
-    try:
-        test.run()
-    except ImageNotFound as e:
-        pass
-    base.tearDown(test.vm)
+    test.build_vm()
+    test.run()
+    test.tear_down()
 
 
 def run(path, config):
