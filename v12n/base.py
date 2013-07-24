@@ -12,7 +12,7 @@ import os
 import libvirt
 import inflogging
 from xml.dom.minidom import parseString
-from inftest import InfinityException
+from infexceptions import InfinityException
 
 LIBVIRT_CONNECTION = None
 MANAGED_VM_DOMAINS = []
@@ -61,10 +61,10 @@ def setup_v12n(uri, pool_path):
         LIBVIRT_CONNECTION = libvirt.open(uri)  # needs root access
 
     # create pool for storages
-    if not MANAGED_POOL:
+    if MANAGED_POOL:
         return
 
-    xml_file = open("xml/pool.xml")
+    xml_file = open(os.path.join(os.path.dirname(__file__), "xml/pool.xml"))
     xml_pool = xml_file.read()
     xml_pool = xml_pool.format(path=pool_path)
 
@@ -72,9 +72,11 @@ def setup_v12n(uri, pool_path):
         os.mkdir(pool_path)
 
     pool_name = parse_domain_xml(xml_pool, "name")
-    pool_name = pool_name.value
+    pool_name = pool_name.firstChild.nodeValue
 
-    if pool_name not in LIBVIRT_CONNECTION.listAllStoragePools(0):
+    storage_pools = LIBVIRT_CONNECTION.listAllStoragePools(0)
+    storage_pools = [pool.name() for pool in storage_pools]
+    if pool_name not in storage_pools:
         MANAGED_POOL = (LIBVIRT_CONNECTION.storagePoolCreateXML(xml_pool, 0), pool_path)
     else:
         raise InfinityException("Pool " + pool_name + " already exist, but it's not managed by infinity.")
@@ -93,8 +95,8 @@ def clean_all():
     if MANAGED_POOL:
         for volume in MANAGED_POOL[0].listAllVolumes(0):
             volume.delete(0)
+        MANAGED_POOL[0].destroy()
 
-    MANAGED_POOL[0].destroy()
     MANAGED_POOL = None
     MANAGED_VM_DOMAINS = []
 
@@ -107,11 +109,11 @@ def build(vm_xml, storage_xml, live_medium):
 
     storage_xml = storage_xml.format(id=ID, path=MANAGED_POOL[1])
     storage_path = parse_domain_xml(storage_xml, "path")
-    storage_path = storage_path.value
+    storage_path = storage_path.firstChild.nodeValue
     vm_xml = vm_xml.format(id=ID, live_medium=live_medium, disk_path=storage_path)
     ID += 1
 
-    storage = MANAGED_POOL.createXML(storage_xml, 0)
+    storage = MANAGED_POOL[0].createXML(storage_xml, 0)
     domain = LIBVIRT_CONNECTION.createXML(vm_xml, 0)  # creates libvirt domain
     MANAGED_VM_DOMAINS.append(domain)
 
@@ -125,6 +127,7 @@ def build(vm_xml, storage_xml, live_medium):
         port = int(port.value)
 
         ip = graphics.attributes["listen"]
+        ip = ip.value
     except KeyError:
         print "#Error: VM XML doesn't contain port number or IP."
         return None

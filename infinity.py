@@ -7,7 +7,8 @@ import os
 import sys
 import inflogging
 from v12n import base
-from inftest import InfinityTest, InfinityException, InfinityTestException
+from inftest import InfinityTest
+from infexceptions import InfinityException, InfinityTestException
 
 
 def load_config(path):
@@ -57,7 +58,7 @@ def load_tests(path):
         except ImportError:
             raise InfinityException("Test module "+module+" cannot be imported.")
 
-        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, storage_xml, images))
+        tests.append(InfinityTest(name, log_subdir, record, main, vm_xml, storage_xml, live_medium, images))
 
     return tests
 

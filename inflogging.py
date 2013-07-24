@@ -1,7 +1,7 @@
 import logging
 import datetime
 import os
-from inftest import InfinityException
+from infexceptions import InfinityException
 
 LOG_DIRECTORY = None
 COMPLETE_LOGS = None

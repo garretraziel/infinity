@@ -1,13 +1,6 @@
 from v12n import base
 from xpresserng import Xpresserng, ImageNotFound
 
-class InfinityException(Exception):
-    pass
-
-
-class InfinityTestException(Exception):
-    pass
-
 
 class InfinityTest(object):
     def __init__(self, name, log_dir, record, main, vm_xml, storage_xml, live_medium, images):
