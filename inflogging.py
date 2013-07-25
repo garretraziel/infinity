@@ -34,7 +34,8 @@ def create_test_logs(test_name):
     global CURRENT_LOGDIR, TEST_LOGFILE, TEST_START_TIME
     if not CURRENT_LOGDIR:
         raise InfinityException("logging was not configured")
-    TEST_LOGFILE = os.path.join(CURRENT_LOGDIR, test_name)
+    nameify = test_name.lower().replace(" ", "_")
+    TEST_LOGFILE = os.path.join(CURRENT_LOGDIR, nameify)
     TEST_START_TIME = datetime.datetime.now()
     filename = open(TEST_LOGFILE, "a")
     filename.close()

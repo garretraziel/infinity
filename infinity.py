@@ -10,6 +10,7 @@ import inflogging
 from v12n import base
 from inftest import InfinityTest
 from infexceptions import InfinityException, InfinityTestException
+from xpresserng import ImageNotFound
 
 
 def load_config(path):
@@ -82,13 +83,6 @@ def sigint_signal(signum, frame):
             sys.exit(0)
 
 
-def run_test(test):
-    inflogging.create_test_logs(test.name)
-    test.build_vm()
-    test.run()
-    test.tear_down()
-
-
 def run(path, config, verbose):
     failed = []
     passed = []
@@ -99,23 +93,33 @@ def run(path, config, verbose):
     base.setup_v12n(config["connection"], config["pool"])
 
     for test in tests:
+        test.build_vm()
+
         try:
-            run_test(test)
+            test.run()
+
         except InfinityTestException as e:
             test.message = e.message
-            if config.verbose:
-                sys.stderr.write(e.message + "\n")
+            if verbose:
+                sys.stderr.write(test.message + "\n")
+            inflogging.log(test.message, "ERROR")
+            failed.append(test)
+        except ImageNotFound as e:
+            test.message = "Image not found: "+str(e.message)
+            if verbose:
+                sys.stderr.write(test.message + "\n")
+            inflogging.log(test.message + "\n", "ERROR")
             failed.append(test)
         except InfinityException as e:
             test.message = e.message
             sys.stderr.write(e.message + "\n")
-            errors.append(test)
-        except Exception as e:
-            test.message = e.message
-            sys.stderr.write(e.message + "\n")
+            inflogging.log(e.message, "ERROR")
             errors.append(test)
         else:
             passed.append(test)
+
+        finally:
+            test.tear_down()
 
     base.clean_all()
 

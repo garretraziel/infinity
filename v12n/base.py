@@ -110,7 +110,7 @@ def build(vm_xml, storage_xml, live_medium):
     if not LIBVIRT_CONNECTION or not MANAGED_POOL:
         raise InfinityException("Not connected to libvirt or pool not created. Run setup_v12n().")
 
-    storage_xml = storage_xml.format(id=ID, path=MANAGED_POOL[1])
+    storage_xml = storage_xml.format(id=ID, path=MANAGED_POOL[1])  # TODO: zkouset zvysit ID, pokud fail
     storage_path = parse_domain_xml(storage_xml, "path")
     storage_path = storage_path.firstChild.nodeValue
     vm_xml = vm_xml.format(id=ID, live_medium=live_medium, disk_path=storage_path)

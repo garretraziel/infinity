@@ -80,3 +80,6 @@ class Image(object):
         if self.name:
             return self.name
         return "unknown image"
+
+    def __repr__(self):
+        return self.__str__()
