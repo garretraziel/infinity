@@ -40,7 +40,7 @@ def load_tests(path):
     tests = []
     for section in config.sections():
         name = config.get(section, "name")
-        record = config.get(section, "record")
+        record = config.getboolean(section, "record")
         module = config.get(section, "module")
 
         get_option = lambda option: config.get(section, option) if os.path.isabs(
