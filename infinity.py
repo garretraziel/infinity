@@ -118,8 +118,7 @@ def run(path, config, verbose):
         else:
             passed.append(test)
 
-        finally:
-            test.tear_down()
+        test.tear_down()
 
     base.clean_all()
 

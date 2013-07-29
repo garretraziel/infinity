@@ -65,7 +65,7 @@ class Xpresserng(object):
         try:
             self.recording = True
             self.video_file = filename
-            self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC('V', 'P', '8', '0'), 2, (1024, 768),
+            self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC(*"VP80"), 2, (1024, 768),
                                                 True)  #TODO: theora would be better
         except: # when opencv with -t-h-e-o-r-a- VP8 isn't supported
             self.recording = False
@@ -129,7 +129,8 @@ class Xpresserng(object):
             screenshot_image = self._vnctool.take_screenshot(debug=self.debug)
             if self.recording:
                 if self.video_writer:
-                    self.video_writer.write(screenshot_image.array)
+                    if screenshot_image.width == 1024 and screenshot_image.height == 768:
+                        self.video_writer.write(screenshot_image.array)
             if isinstance(image, types.ListType):
                 for im in image:
                     match = self._imagefinder.find(screenshot_image, im)
