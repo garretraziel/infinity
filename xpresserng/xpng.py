@@ -65,7 +65,7 @@ class Xpresserng(object):
         try:
             self.recording = True
             self.video_file = filename
-            self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC(*"VP80"), 2, (1024, 768),
+            self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC(*"XVID"), 2, (1024, 768),
                                                 True)  #TODO: theora would be better
         except: # when opencv with -t-h-e-o-r-a- VP8 isn't supported
             self.recording = False

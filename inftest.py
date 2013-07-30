@@ -30,7 +30,7 @@ class InfinityTest(object):
         inflogging.create_test_logs(self.name)
         if self.record:
             self.xpng.set_recording(
-                os.path.join(inflogging.CURRENT_LOGDIR, self.name.lower().replace(" ", "_") + ".webm"))
+                os.path.join(inflogging.CURRENT_LOGDIR, self.name.lower().replace(" ", "_") + ".avi"))
 
     def tear_down(self):
         base.tear_down(self.vm)
