@@ -28,6 +28,16 @@ def setup_logging(path):
     CURRENT_LOGDIR = os.path.join(LOG_DIRECTORY, datetime.datetime.now().isoformat())
     os.mkdir(CURRENT_LOGDIR)
 
+    try:
+        os.remove(os.path.join(path, "latest"))
+    except OSError:
+        pass
+
+    try:
+        os.symlink(CURRENT_LOGDIR, os.path.join(path, "latest"))
+    except OSError:
+        pass
+
 
 def create_test_logs(test_name):
     # touch log filel
