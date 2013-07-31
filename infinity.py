@@ -13,6 +13,9 @@ from infexceptions import InfinityException, InfinityTestException
 from xpresserng import ImageNotFound
 
 
+VERBOSE = False
+
+
 def load_config(path):
     config = ConfigParser.RawConfigParser()
     config.read(path)
@@ -71,7 +74,8 @@ def load_tests(path):
 
 
 def sigint_signal(signum, frame):
-    if signum == signal.SIGTERM:
+    global VERBOSE
+    if signum == signal.SIGTERM or not VERBOSE:
         base.clean_all()
         sys.exit(0)
     while True:
@@ -83,7 +87,9 @@ def sigint_signal(signum, frame):
             sys.exit(0)
 
 
-def run(path, config, verbose):
+def run(path, config):
+    global VERBOSE
+
     failed = []
     passed = []
     errors = []
@@ -93,8 +99,8 @@ def run(path, config, verbose):
     base.setup_v12n(config["connection"], config["pool"])
 
     for i, test in enumerate(tests):
-        if verbose:
-            print "{0}/{1} {2}".format(i+1, len(tests), test.name)
+        if VERBOSE:
+            print "{0}/{1} {2}".format(i + 1, len(tests), test.name)
 
         test.build_vm()
 
@@ -103,13 +109,13 @@ def run(path, config, verbose):
 
         except InfinityTestException as e:
             test.message = e.message
-            if verbose:
+            if VERBOSE:
                 sys.stderr.write(test.message + "\n")
             inflogging.log(test.message, "ERROR")
             failed.append(test)
         except ImageNotFound as e:
-            test.message = "Image not found: "+str(e.message)
-            if verbose:
+            test.message = "Image not found: " + str(e.message)
+            if VERBOSE:
                 sys.stderr.write(test.message + "\n")
             inflogging.log(test.message + "\n", "ERROR")
             failed.append(test)
@@ -125,11 +131,11 @@ def run(path, config, verbose):
 
     base.clean_all()
 
-    if verbose:
+    if VERBOSE:
         print "FAILED:", len(failed)
         for fail in failed:
             if fail.message:
-                print fail.name+":", fail.message
+                print fail.name + ":", fail.message
             else:
                 print fail.name
         print "ERRORS:", len(errors)
@@ -137,6 +143,7 @@ def run(path, config, verbose):
 
 
 def main():
+    global VERBOSE
     signal.signal(signal.SIGINT, sigint_signal)
     signal.signal(signal.SIGTERM, sigint_signal)
 
@@ -147,7 +154,8 @@ def main():
     parser.add_argument("directory", default=".", nargs="?", help="directory with tests to run (default: %(default)s)")
     args = parser.parse_args()
     config = load_config(args.config)
-    run(args.directory, config, args.verbose)
+    VERBOSE = args.verbose
+    run(args.directory, config)
 
 
 if __name__ == "__main__":
