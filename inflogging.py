@@ -23,10 +23,11 @@ def setup_logging(path):
     if not os.path.exists(COMPLETE_LOGS):
         os.mkdir(COMPLETE_LOGS)
 
-    complete_log = os.path.join(COMPLETE_LOGS, datetime.datetime.now().isoformat() + '.log')
+    now = datetime.datetime.now().isoformat()
+    complete_log = os.path.join(COMPLETE_LOGS, now + '.log')
     logging.basicConfig(filename=complete_log, level=logging.INFO, format="%(asctime)s:%(levelname)s: %(message)s")
 
-    CURRENT_LOGDIR = os.path.join(LOG_DIRECTORY, datetime.datetime.now().isoformat())
+    CURRENT_LOGDIR = os.path.join(LOG_DIRECTORY, now)
     os.mkdir(CURRENT_LOGDIR)
 
     try:
