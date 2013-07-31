@@ -32,7 +32,7 @@
         </interface>
         <input type='tablet' bus='usb'/>
         <input type='mouse' bus='ps2'/>
-        <graphics type='vnc' port='-1' autoport='yes'/>
+        <graphics type='vnc' port='-1' autoport='yes' sharePolicy='force-shared'/>
         <video>
             <model type='vga' vram='9216' heads='1'/>
         </video>

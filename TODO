@@ -1,0 +1,8 @@
+* heslo pro VNC
+  - nebude slozity. nahodne vygenerovat, vypsat na obrazovku, pouzit v XML, pouzit jako argument pri pripojovani
+* nahravani do webm
+  - to bude jeste peklo, co s tim mam delat?
+* rozumnejic udelany logovani
+  - bylo by dobry, aby nejak logoval aji xpresserng
+* dat nekde nekomu vedet, ze pro pripojeni na VNC z jineho klienta je potreba force-shared do domain
+  - pak se da pouzit vncviewer -share -viewonly
