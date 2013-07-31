@@ -23,8 +23,9 @@ def setup_logging(path):
     if not os.path.exists(COMPLETE_LOGS):
         os.mkdir(COMPLETE_LOGS)
 
-    logging.basicConfig(filename=os.path.join(COMPLETE_LOGS, datetime.datetime.now().isoformat() + '.log'),
-                        level=logging.INFO, format="%(asctime)s:%(levelname)s: %(message)s")
+    complete_log = os.path.join(COMPLETE_LOGS, datetime.datetime.now().isoformat() + '.log')
+    logging.basicConfig(filename=complete_log, level=logging.INFO, format="%(asctime)s:%(levelname)s: %(message)s")
+
     CURRENT_LOGDIR = os.path.join(LOG_DIRECTORY, datetime.datetime.now().isoformat())
     os.mkdir(CURRENT_LOGDIR)
 
@@ -35,6 +36,16 @@ def setup_logging(path):
 
     try:
         os.symlink(CURRENT_LOGDIR, os.path.join(path, "latest"))
+    except OSError:
+        pass
+
+    try:
+        os.remove(os.path.join(COMPLETE_LOGS, "latest"))
+    except OSError:
+        pass
+
+    try:
+        os.symlink(complete_log, os.path.join(COMPLETE_LOGS, "latest"))
     except OSError:
         pass
 
