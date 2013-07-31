@@ -92,7 +92,10 @@ def run(path, config, verbose):
     inflogging.setup_logging(config["logs"])
     base.setup_v12n(config["connection"], config["pool"])
 
-    for test in tests:
+    for i, test in enumerate(tests):
+        if verbose:
+            print "{0}/{1} {2}".format(i+1, len(tests), test.name)
+
         test.build_vm()
 
         try:
@@ -126,7 +129,9 @@ def run(path, config, verbose):
         print "FAILED:", len(failed)
         for fail in failed:
             if fail.message:
-                print fail.message
+                print fail.name+":", fail.message
+            else:
+                print fail.name
         print "ERRORS:", len(errors)
         print "PASSED:", len(passed)
 
