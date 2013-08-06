@@ -17,28 +17,47 @@ VERBOSE = False
 
 
 def load_config(path):
-    config = ConfigParser.RawConfigParser()
-    config.read(path)
     conf = {
         "connection": "qemu:///system",
-        "logs": "/var/log/infinity",
+        "logs": "/tmp/log/infinity",
         "pool": "/tmp/infinity-disks"
     }
-    try:
-        if config.has_option("general", "conn"):
-            conf["connection"] = config.get("general", "conn")
-        if config.has_option("general", "logs"):
-            conf["logs"] = config.get("general", "logs")
-        if config.has_option("general", "pool"):
-            conf["pool"] = config.get("general", "pool")
-    except ConfigParser.NoSectionError:
-        pass
-    return conf
+
+    if path is None:
+        if os.path.exists("/etc/infinity.cfg"):
+            path = "/etc/infinity.cfg"  # default path
+        else:
+            return conf
+
+    if not os.path.exists(path):
+        sys.stderr.write("[ERROR]: config does not exist\n")
+        sys.exit(1)
+    else:
+        config = ConfigParser.RawConfigParser()
+        config.read(path)
+        try:
+            if config.has_option("general", "conn"):
+                conf["connection"] = config.get("general", "conn")
+            if config.has_option("general", "logs"):
+                conf["logs"] = config.get("general", "logs")
+            if config.has_option("general", "pool"):
+                conf["pool"] = config.get("general", "pool")
+        except ConfigParser.NoSectionError:
+            pass
+        return conf
 
 
 def load_tests(path):
+    global VERBOSE
+
     config = ConfigParser.RawConfigParser()
-    config.read(os.path.join(path, "inftests.cfg"))  # TODO: error
+    config_path = os.path.join(path, "inftests.cfg")
+
+    if not os.path.exists(config_path):
+        sys.stderr.write("[ERROR]: inftests.cfg is missing in given test directory.\n")
+        sys.exit(1)
+
+    config.read(config_path)
 
     tests = []
     for section in config.sections():
@@ -62,11 +81,16 @@ def load_tests(path):
         images = get_option("images")
         live_medium = get_option("live_medium")
 
+        if VERBOSE:
+            print "[INFO]: importing test", name
+
         try:
             imported_module = importlib.import_module(module + ".main")
             main = imported_module.main
         except ImportError:
             raise InfinityException("Test module " + module + " cannot be imported.")
+        except AttributeError:
+            raise InfinityException("Test module " + module + " doesn't contain main() function.")
 
         tests.append(InfinityTest(name, record, main, vm_xml, storage_xml, live_medium, images))
 
@@ -148,7 +172,7 @@ def main():
     signal.signal(signal.SIGTERM, sigint_signal)
 
     parser = argparse.ArgumentParser(description="Program for running automatic GUI tests.")
-    parser.add_argument("-c", "--config", default="/etc/infinity.cfg",
+    parser.add_argument("-c", "--config", default=None,
                         help="path to infinity config file (default: %(default)s)")
     parser.add_argument("-v", "--verbose", action="store_true", help="print all messages")
     parser.add_argument("directory", default=".", nargs="?", help="directory with tests to run (default: %(default)s)")
