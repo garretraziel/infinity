@@ -84,7 +84,7 @@ class VncTool(object):
         self.host = host
         self.password = password
         self.port = port
-        self.client = api.connect(":".join([host, str(port)]))
+        self.client = api.connect(":".join([host, str(port-5900)]))  # TODO: toto je hroznej sranec, oh muj boze
 
     def click(self, x, y):
         """Click on given coordinates with mouse."""
