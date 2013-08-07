@@ -2,15 +2,16 @@
 import cv2
 
 import types
-import subprocess
 import os
 import logging
+import time
 
 from image import Image
 from tempfile import NamedTemporaryFile
 
 ABSPATH = os.path.dirname(os.path.abspath(__file__))
 
+from vncdotool import api
 from vncdotool.client import KEYMAP
 
 
@@ -54,10 +55,10 @@ def key_argument_type(argument):
 
     """
     if isinstance(argument, types.ListType):
-        for item in argument[:-1]: # last one can be normal key, others have to be special
+        for item in argument[:-1]:  # last one can be normal key, others have to be special
             if not to_special(item):
                 return "FAIL"
-        if len(argument[-1]) > 1 and not to_special(argument[-1]): # last one should be only one key
+        if len(argument[-1]) > 1 and not to_special(argument[-1]):  # last one should be only one key
             return "FAIL"
         else:
             return "MULTIKEYS"
@@ -83,40 +84,28 @@ class VncTool(object):
         self.host = host
         self.password = password
         self.port = port
-        self.run_vnc_function = self.create_vnc_function(host, port, password)
-
-    def create_vnc_function(self, host, port, password):
-        """Create function which will be used for controlling target machine."""
-
-        def run_vncdotool(commands):
-            if commands[0] != "capture":
-                logging.debug("#DEBUG reactor:", commands)
-                #TODO: vncdotool cannot be used as a library.... yet
-            subprocess.call(
-                ["python", os.path.join(ABSPATH, "vncdotool/command.py"), "--delay=100", "-s",
-                 host + "::" + str(port)] + commands)
-
-        return run_vncdotool
+        self.client = api.connect(":".join([host, str(port)]))
 
     def click(self, x, y):
         """Click on given coordinates with mouse."""
-        commands = ['move', str(x), str(y), 'click', '1']
-        self.run_vnc_function(commands)
+        self.client.mouseMove(x, y)
+        self.client.mousePress(1)
 
     def right_click(self, x, y):
         """Rightclick on given coordinates with mouse."""
-        commands = ['move', str(x), str(y), 'click', '3']
-        self.run_vnc_function(commands)
+        self.client.mouseMove(x, y)
+        self.client.mousePress(3)
 
     def double_click(self, x, y):
         """Doubleclick on given coordinates with mouse."""
-        commands = ['move', str(x), str(y), 'click', '1', 'click', '1']
-        self.run_vnc_function(commands)
+        self.client.mouseMove(x, y)
+        self.client.mousePress(1)
+        time.sleep(0.1)
+        self.client.mousePress(1)
 
     def hover(self, x, y):
         """Move mouse to given coordinates."""
-        commands = ['move', str(x), str(y)]
-        self.run_vnc_function(commands)
+        self.client.mouseMove(x, y)
 
     def keyboard_type(self, string):
         """Type given keys on keyboard on target machine.
@@ -134,13 +123,13 @@ class VncTool(object):
         """
         arg_type = key_argument_type(string)
         if arg_type == "MULTIKEYS":
-            keys = [to_special(key) for key in string[:-1]] # convert special keys to KEYMAP
-            last_key = to_special(string[-1]) # try to convert the last one
-            if last_key: # last one is special key
+            keys = [to_special(key) for key in string[:-1]]  # convert special keys to KEYMAP
+            last_key = to_special(string[-1])  # try to convert the last one
+            if last_key:  # last one is special key
                 keys.append(last_key)
-            else: # last one is normal character
+            else:  # last one is normal character
                 keys.append(string[-1])
-            keys = "-".join(keys) # vncdotool expects it that way
+            keys = "-".join(keys)  # vncdotool expects it that way
             self.__type_key(keys)
         elif arg_type == "SPECIAL":
             key = to_special(string)
@@ -152,24 +141,22 @@ class VncTool(object):
 
     def __type_standard(self, string):
         """Send command to type standard keys over VNC."""
-        commands = ['type', string]
-        self.run_vnc_function(commands)
+        for char in string:
+            self.client.keyPress(char)  # TODO: rather string than keystrokes
+            time.sleep(0.1)
 
     def __type_key(self, keys):
         """Send commant to type special keys over VNC."""
-        commands = ["key", keys]
-        self.run_vnc_function(commands)
+        self.client.keyPress(keys)
 
     def take_screenshot(self, debug=True):
         """Take screenshot of desktop and return name of file where was it saved."""
         with NamedTemporaryFile(prefix='xpresserng_', suffix='.png', delete=not debug) as f:
-            commands = ['capture', f.name]
-            self.run_vnc_function(commands)
+            self.client.captureScreen(f.name)
             opencv_image = cv2.imread(f.name)
         return Image("screenshot", array=opencv_image,
                      width=len(opencv_image[0]), height=len(opencv_image))
 
     def log_vm(self, screenshot_name):
-        commands = ['capture', screenshot_name]
-        self.run_vnc_function(commands)
+        self.client.captureScreen(screenshot_name)
         # perhaps image of VM RAM?
