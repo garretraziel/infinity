@@ -129,7 +129,13 @@ def run(path, config):
         test.build_vm()
 
         try:
-            test.run()
+            ok, message = test.run()
+
+            if not ok:
+                if VERBOSE:
+                    sys.stderr.write(str(message) + "\n")
+                    inflogging.log(message, "ERROR")
+                    failed.append(test)
 
         except InfinityTestException as e:
             test.message = e.message
