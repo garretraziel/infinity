@@ -44,6 +44,9 @@ class VirtualMachine(object):
         self.domain.destroy()
         self.storage.delete(0)
 
+    def vnc_info(self):
+        return ":".join([self.ip, str(self.port-5900)])
+
 
 def parse_domain_xml(xml, value):
     parsed = parseString(xml)
@@ -110,14 +113,24 @@ def build(vm_xml, storage_xml, live_medium):
     if not LIBVIRT_CONNECTION or not MANAGED_POOL:
         raise InfinityException("Not connected to libvirt or pool not created. Run setup_v12n().")
 
-    storage_xml = storage_xml.format(id=ID, path=MANAGED_POOL[1])  # TODO: zkouset zvysit ID, pokud fail
+    storage_xml = storage_xml.format(id=ID, path=MANAGED_POOL[1])
     storage_path = parse_domain_xml(storage_xml, "path")
     storage_path = storage_path.firstChild.nodeValue
     vm_xml = vm_xml.format(id=ID, live_medium=live_medium, disk_path=storage_path)
+
+    try:
+        storage = MANAGED_POOL[0].createXML(storage_xml, 0)
+    except libvirt.libvirtError:
+        return None
+
+    try:
+        domain = LIBVIRT_CONNECTION.createXML(vm_xml, 0)  # creates libvirt domain
+    except libvirt.libvirtError:
+        storage.delete(0)
+        return None
+
     ID += 1
 
-    storage = MANAGED_POOL[0].createXML(storage_xml, 0)
-    domain = LIBVIRT_CONNECTION.createXML(vm_xml, 0)  # creates libvirt domain
     MANAGED_VM_DOMAINS.append(domain)
 
     xmlsettings = domain.XMLDesc(0)  # get XML representation

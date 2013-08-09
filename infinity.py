@@ -124,7 +124,8 @@ def run(path, config):
 
     for i, test in enumerate(tests):
         if VERBOSE:
-            print "{0}/{1} {2}".format(i + 1, len(tests), test.name)
+            print "[INFO]: {0}/{1} {2}".format(i + 1, len(tests), test.name)
+            test.set_verbose()
 
         test.build_vm()
 
