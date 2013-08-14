@@ -17,10 +17,16 @@ class LoggingOutput(object):
         self.err = err
         self.prefix = prefix
         self.in_test = False
+        self.newline = True
+        self.old_msg = ""
 
     def write(self, buf):
-        message = str(self.prefix) + ": " + buf
-        #self.log(message)
+        if self.newline:
+            message = str(self.prefix) + ": " + buf
+        else:
+            message = buf
+
+        self.old_msg += message
 
         if self.verbose or self.err:
             self.output.write(message)
@@ -30,18 +36,24 @@ class LoggingOutput(object):
             time_passed = str(datetime.datetime.now() - TEST_START_TIME)
 
             with open(TEST_LOGFILE, "a") as f:
-                f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " at " + time_passed + ":" + message)
+                if self.newline:
+                    m = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " at " + time_passed + ":" + message
+                else:
+                    m = message
+                f.write(m)
+
+        if buf[-1] == "\n":
+            self.newline = True
+            self.log(self.old_msg[:-1])
+            self.old_msg = ""
+        else:
+            self.newline = False
 
     def log(self, message):
-        global TEST_LOGFILE, TEST_START_TIME
-        if not TEST_LOGFILE:
-            logging.error("log file not set")
-            raise InfinityException("log file not set")
-        time_from_beginning = str(datetime.datetime.now() - TEST_START_TIME)
         if self.err:
-            logging.error(time_from_beginning + ":" + message)
+            logging.error(message)
         else:
-            logging.info(time_from_beginning + ":" + message)
+            logging.info(message)
 
 
 def setup_logging(path):

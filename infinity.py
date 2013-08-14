@@ -6,6 +6,7 @@ import importlib
 import os
 import sys
 import signal
+import datetime
 import inflogging
 from v12n import base
 from inftest import InfinityTest
@@ -134,8 +135,8 @@ def run(path, config):
     base.setup_v12n(config["connection"], config["pool"])
 
     for i, test in enumerate(tests):
+        print "{0}/{1} {2}".format(i + 1, len(tests), test.name)
         if VERBOSE:
-            print "{0}/{1} {2}".format(i + 1, len(tests), test.name)
             test.set_verbose()
 
         test.build_vm()
@@ -143,6 +144,8 @@ def run(path, config):
         sys.stdout.prefix = "[OUT]"
         sys.stdout.in_test = True
         sys.stderr.in_test = True
+
+        print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + test.name
 
         try:
             test.run()
@@ -163,6 +166,8 @@ def run(path, config):
             errors.append(test)
         else:
             passed.append(test)
+
+        print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + test.name + " finished."
 
         sys.stdout.prefix = "[INFO]"
         sys.stdout.in_test = False
