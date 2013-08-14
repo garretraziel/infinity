@@ -1,6 +1,7 @@
 import logging
 import datetime
 import os
+import sys
 from infexceptions import InfinityException
 
 LOG_DIRECTORY = None
@@ -8,6 +9,9 @@ COMPLETE_LOGS = None
 CURRENT_LOGDIR = None
 TEST_LOGFILE = None
 TEST_START_TIME = None
+
+ORIG_STDOUT = None
+ORIG_STDERR = None
 
 
 class LoggingOutput(object):
@@ -21,6 +25,11 @@ class LoggingOutput(object):
         self.old_msg = ""
 
     def write(self, buf):
+        global ORIG_STDERR
+        stderr_handler = sys.stderr
+        sys.stderr = ORIG_STDERR
+
+
         if self.newline:
             message = str(self.prefix) + ": " + buf
         else:
@@ -49,6 +58,8 @@ class LoggingOutput(object):
         else:
             self.newline = False
 
+        sys.stderr = stderr_handler
+
     def log(self, message):
         if self.err:
             logging.error(message)
@@ -58,6 +69,10 @@ class LoggingOutput(object):
 
 def setup_logging(path):
     global COMPLETE_LOGS, CURRENT_LOGDIR, LOG_DIRECTORY
+    global ORIG_STDERR, ORIG_STDOUT
+
+    ORIG_STDERR = sys.stderr
+    ORIG_STDOUT = sys.stdout
 
     if not LOG_DIRECTORY:
         LOG_DIRECTORY = path

@@ -15,8 +15,6 @@ from xpresserng import ImageNotFound
 
 
 VERBOSE = False
-ORIG_STDOUT = None
-ORIG_STDERR = None
 
 
 def load_config(path):
@@ -101,9 +99,9 @@ def load_tests(path):
 
 
 def sigint_signal(signum, frame):
-    global VERBOSE, ORIG_STDOUT, ORIG_STDERR
-    sys.stdout = ORIG_STDOUT
-    sys.stderr = ORIG_STDERR
+    global VERBOSE
+    sys.stdout = inflogging.ORIG_STDOUT
+    sys.stderr = inflogging.ORIG_STDERR
 
     if signum == signal.SIGTERM or not VERBOSE:
         base.clean_all()
@@ -118,15 +116,13 @@ def sigint_signal(signum, frame):
 
 
 def run(path, config):
-    global VERBOSE, ORIG_STDERR, ORIG_STDOUT
+    global VERBOSE
 
     failed = []
     passed = []
     errors = []
 
     inflogging.setup_logging(config["logs"])
-    ORIG_STDERR = sys.stderr
-    ORIG_STDOUT = sys.stdout
     sys.stdout = inflogging.LoggingOutput(sys.stdout, VERBOSE, "[INFO]")
     sys.stderr = inflogging.LoggingOutput(sys.stderr, VERBOSE, "[ERROR]", True)
 
