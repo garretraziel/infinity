@@ -148,17 +148,15 @@ def run(path, config):
 
         except InfinityTestException as e:
             test.message = e.message
-            if VERBOSE:
-                sys.stderr.write(test.message + "\n")
+            print test.message
             failed.append(test)
         except ImageNotFound as e:
             test.message = "Image not found: " + str(e.message)
-            if VERBOSE:
-                sys.stderr.write(test.message + "\n")
+            print test.message
             failed.append(test)
         except InfinityException as e:
             test.message = e.message
-            sys.stderr.write(e.message + "\n")
+            print e.message
             errors.append(test)
         else:
             passed.append(test)
@@ -173,15 +171,14 @@ def run(path, config):
 
     base.clean_all()
 
-    if VERBOSE:
-        print "FAILED:", len(failed)
-        for fail in failed:
-            if fail.message:
-                print fail.name + ":", fail.message
-            else:
-                print fail.name
-        print "ERRORS:", len(errors)
-        print "PASSED:", len(passed)
+    print "FAILED:", len(failed)
+    for fail in failed:
+        if fail.message:
+            print fail.name + ":", fail.message
+        else:
+            print fail.name
+    print "ERRORS:", len(errors)
+    print "PASSED:", len(passed)
 
     sys.stdout = inflogging.ORIG_STDOUT
     sys.stderr = inflogging.ORIG_STDERR

@@ -10,8 +10,8 @@ CURRENT_LOGDIR = None
 TEST_LOGFILE = None
 TEST_START_TIME = None
 
-ORIG_STDOUT = None
-ORIG_STDERR = None
+ORIG_STDOUT = sys.stdout
+ORIG_STDERR = sys.stderr
 
 
 class LoggingOutput(object):
@@ -69,10 +69,6 @@ class LoggingOutput(object):
 
 def setup_logging(path):
     global COMPLETE_LOGS, CURRENT_LOGDIR, LOG_DIRECTORY
-    global ORIG_STDERR, ORIG_STDOUT
-
-    ORIG_STDERR = sys.stderr
-    ORIG_STDOUT = sys.stdout
 
     if not LOG_DIRECTORY:
         LOG_DIRECTORY = path
