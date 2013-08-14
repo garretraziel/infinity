@@ -1,4 +1,5 @@
 import os
+import sys
 from v12n import base
 from xpresserng import Xpresserng
 import inflogging
@@ -32,11 +33,14 @@ class InfinityTest(object):
 
             if not self.vm:  # there was problem with creating VM. Domain with that ID probably exists
                 if self.verbose:
+                    stdout_handler = sys.stdout
+                    sys.stdout = inflogging.ORIG_STDOUT
                     clean = raw_input("[ERROR]: Domain already running. Clean it? [Y/n]: ")
                     if clean not in ["", "Y", "y"]:
                         base.ID += 1  # TODO: clean existing&running domains instead
                     else:
                         base.ID += 1
+                    sys.stdout = stdout_handler
                 else:
                     # Don't delete existing domains, they might be important. Increase ID instead.
                     base.ID += 1

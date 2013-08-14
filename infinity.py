@@ -183,8 +183,8 @@ def run(path, config):
         print "ERRORS:", len(errors)
         print "PASSED:", len(passed)
 
-    sys.stdout = ORIG_STDOUT
-    sys.stderr = ORIG_STDERR
+    sys.stdout = inflogging.ORIG_STDOUT
+    sys.stderr = inflogging.ORIG_STDERR
 
 
 def main():
