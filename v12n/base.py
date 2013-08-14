@@ -10,6 +10,7 @@ destroying them.
 
 import os
 import libvirt
+import sys
 import inflogging
 from xml.dom.minidom import parseString
 from infexceptions import InfinityException
@@ -145,7 +146,7 @@ def build(vm_xml, storage_xml, live_medium):
         ip = graphics.attributes["listen"]
         ip = ip.value
     except KeyError:
-        print "#Error: VM XML doesn't contain port number or IP."
+        sys.stderr.write("VM XML doesn't contain port number or IP.")
         return None
 
     virtmachine = VirtualMachine(domain, ip, port, storage, storage.path())

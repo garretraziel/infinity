@@ -10,6 +10,40 @@ TEST_LOGFILE = None
 TEST_START_TIME = None
 
 
+class LoggingOutput(object):
+    def __init__(self, output, verbose, prefix, err=False):
+        self.output = output
+        self.verbose = verbose
+        self.err = err
+        self.prefix = prefix
+        self.in_test = False
+
+    def write(self, buf):
+        message = str(self.prefix) + ": " + buf
+        #self.log(message)
+
+        if self.verbose or self.err:
+            self.output.write(message)
+
+        if self.in_test:
+            global TEST_LOGFILE, TEST_START_TIME
+            time_passed = str(datetime.datetime.now() - TEST_START_TIME)
+
+            with open(TEST_LOGFILE, "a") as f:
+                f.write(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " at " + time_passed + ":" + message)
+
+    def log(self, message):
+        global TEST_LOGFILE, TEST_START_TIME
+        if not TEST_LOGFILE:
+            logging.error("log file not set")
+            raise InfinityException("log file not set")
+        time_from_beginning = str(datetime.datetime.now() - TEST_START_TIME)
+        if self.err:
+            logging.error(time_from_beginning + ":" + message)
+        else:
+            logging.info(time_from_beginning + ":" + message)
+
+
 def setup_logging(path):
     global COMPLETE_LOGS, CURRENT_LOGDIR, LOG_DIRECTORY
 
@@ -61,20 +95,3 @@ def create_test_logs(test_name):
     TEST_START_TIME = datetime.datetime.now()
     filename = open(TEST_LOGFILE, "a")
     filename.close()
-
-
-def log(log_message, log_level):
-    global TEST_LOGFILE, TEST_START_TIME
-    if not TEST_LOGFILE:
-        logging.error("log file not set")
-        raise InfinityException("log file not set")
-    time_from_beginning = str(datetime.datetime.now() - TEST_START_TIME)
-    if log_level == "ERROR":
-        logging.error(time_from_beginning + ": " + log_message)
-        with open(TEST_LOGFILE, "a") as f:
-            f.write(datetime.datetime.now().strftime(
-                "%Y-%m-%d %H:%M:%S") + ":ERROR: " + time_from_beginning + ": " + log_message + "\n")
-    elif log_level == "INFO":
-        logging.info(time_from_beginning + ": " + log_message)
-    else:
-        logging.error("not known log_level: " + log_message)

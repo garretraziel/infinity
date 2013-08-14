@@ -21,7 +21,7 @@ class InfinityTest(object):
         self.verbose = False
 
     def run(self):
-        self.message = self.main(self.xpng, inflogging.log)
+        self.message = self.main(self.xpng)
         self.completed = True
 
     def build_vm(self):
@@ -46,7 +46,7 @@ class InfinityTest(object):
         self.xpng = Xpresserng(self.vm.ip, self.vm.port)
 
         if self.verbose:
-            print "[INFO]: Connect to VNC using: vncviewer -shared -viewonly", self.vm.vnc_info()
+            print "Connect to VNC using: vncviewer -shared -viewonly", self.vm.vnc_info()
 
         self.xpng.load_images(self.images)
         inflogging.create_test_logs(self.name)

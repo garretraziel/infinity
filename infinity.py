@@ -14,6 +14,8 @@ from xpresserng import ImageNotFound
 
 
 VERBOSE = False
+ORIG_STDOUT = None
+ORIG_STDERR = None
 
 
 def load_config(path):
@@ -54,7 +56,7 @@ def load_tests(path):
     config_path = os.path.join(path, "inftests.cfg")
 
     if not os.path.exists(config_path):
-        sys.stderr.write("[ERROR]: inftests.cfg is missing in given test directory.\n")
+        sys.stderr.write("inftests.cfg is missing in given test directory.\n")
         sys.exit(1)
 
     config.read(config_path)
@@ -82,7 +84,7 @@ def load_tests(path):
         live_medium = get_option("live_medium")
 
         if VERBOSE:
-            print "[INFO]: importing test", name
+            print "importing test", name
 
         try:
             imported_module = importlib.import_module(module + ".main")
@@ -98,7 +100,10 @@ def load_tests(path):
 
 
 def sigint_signal(signum, frame):
-    global VERBOSE
+    global VERBOSE, ORIG_STDOUT, ORIG_STDERR
+    sys.stdout = ORIG_STDOUT
+    sys.stderr = ORIG_STDERR
+
     if signum == signal.SIGTERM or not VERBOSE:
         base.clean_all()
         sys.exit(0)
@@ -112,22 +117,32 @@ def sigint_signal(signum, frame):
 
 
 def run(path, config):
-    global VERBOSE
+    global VERBOSE, ORIG_STDERR, ORIG_STDOUT
 
     failed = []
     passed = []
     errors = []
+
+    inflogging.setup_logging(config["logs"])
+    ORIG_STDERR = sys.stderr
+    ORIG_STDOUT = sys.stdout
+    sys.stdout = inflogging.LoggingOutput(sys.stdout, VERBOSE, "[INFO]")
+    sys.stderr = inflogging.LoggingOutput(sys.stderr, VERBOSE, "[ERROR]", True)
+
     sys.path.insert(0, path)
     tests = load_tests(path)
-    inflogging.setup_logging(config["logs"])
     base.setup_v12n(config["connection"], config["pool"])
 
     for i, test in enumerate(tests):
         if VERBOSE:
-            print "[INFO]: {0}/{1} {2}".format(i + 1, len(tests), test.name)
+            print "{0}/{1} {2}".format(i + 1, len(tests), test.name)
             test.set_verbose()
 
         test.build_vm()
+
+        sys.stdout.prefix = "[OUT]"
+        sys.stdout.in_test = True
+        sys.stderr.in_test = True
 
         try:
             test.run()
@@ -136,21 +151,22 @@ def run(path, config):
             test.message = e.message
             if VERBOSE:
                 sys.stderr.write(test.message + "\n")
-            inflogging.log(test.message, "ERROR")
             failed.append(test)
         except ImageNotFound as e:
             test.message = "Image not found: " + str(e.message)
             if VERBOSE:
                 sys.stderr.write(test.message + "\n")
-            inflogging.log(test.message + "\n", "ERROR")
             failed.append(test)
         except InfinityException as e:
             test.message = e.message
             sys.stderr.write(e.message + "\n")
-            inflogging.log(e.message, "ERROR")
             errors.append(test)
         else:
             passed.append(test)
+
+        sys.stdout.prefix = "[INFO]"
+        sys.stdout.in_test = False
+        sys.stderr.in_test = False
 
         test.tear_down()
 
@@ -165,6 +181,9 @@ def run(path, config):
                 print fail.name
         print "ERRORS:", len(errors)
         print "PASSED:", len(passed)
+
+    sys.stdout = ORIG_STDOUT
+    sys.stderr = ORIG_STDERR
 
 
 def main():

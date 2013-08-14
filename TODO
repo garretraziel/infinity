@@ -6,3 +6,5 @@
   - bylo by dobry, aby nejak logoval aji xpresserng
 * dat nekde nekomu vedet, ze pro pripojeni na VNC z jineho klienta je potreba force-shared do domain
   - pak se da pouzit vncviewer -shared -viewonly
+* mazani vsech VM, podivat se na to jak se chovaji
+* LEPSI OUTPUT!!
