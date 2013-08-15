@@ -62,13 +62,10 @@ class Xpresserng(object):
             return match.focus_point
 
     def set_recording(self, filename):
-        try:
-            self.recording = True
-            self.video_file = filename
-            self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC(*"VP80"), 2, (1024, 768),
-                                                True)  #TODO: theora would be better
-        except: # when opencv with -t-h-e-o-r-a- VP8 isn't supported
-            self.recording = False
+        self.recording = True
+        self.video_file = filename
+        self.video_writer = cv2.VideoWriter(self.video_file, cv2.cv.CV_FOURCC(*"XVID"), 2, (1024, 768),
+                                            True)  # TODO: webm would be better
 
     def click(self, *args):
         """Click on the position specified by the provided arguments.
@@ -129,7 +126,7 @@ class Xpresserng(object):
             screenshot_image = self._vnctool.take_screenshot(debug=self.debug)
             if self.recording:
                 if self.video_writer:
-                    if screenshot_image.width == 1024 and screenshot_image.height == 768:
+                    if screenshot_image.width == 1024 and screenshot_image.height == 768:  # TODO: tis no pretty
                         self.video_writer.write(screenshot_image.array)
             if isinstance(image, types.ListType):
                 for im in image:
