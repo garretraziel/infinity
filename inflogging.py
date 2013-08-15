@@ -1,6 +1,7 @@
 import logging
 import datetime
 import os
+import string
 import sys
 from infexceptions import InfinityException
 
@@ -14,6 +15,10 @@ ORIG_STDOUT = sys.stdout
 ORIG_STDERR = sys.stderr
 
 
+FAIL = '\033[91m'
+ENDC = '\033[0m'
+
+
 class LoggingOutput(object):
     def __init__(self, output, verbose, prefix, err=False):
         self.output = output
@@ -25,10 +30,9 @@ class LoggingOutput(object):
         self.old_msg = ""
 
     def write(self, buf):
-        global ORIG_STDERR
+        global ORIG_STDERR, FAIL, ENDC
         stderr_handler = sys.stderr
         sys.stderr = ORIG_STDERR
-
 
         if self.newline:
             message = str(self.prefix) + ": " + buf
@@ -38,7 +42,10 @@ class LoggingOutput(object):
         self.old_msg += message
 
         if self.verbose or self.err:
-            self.output.write(message)
+            if self.output.isatty() and self.err:
+                self.output.write(FAIL+message+ENDC)
+            else:
+                self.output.write(message)
 
         if self.in_test:
             global TEST_LOGFILE, TEST_START_TIME
@@ -108,13 +115,21 @@ def setup_logging(path):
         pass
 
 
+def nameify(ugly_name):
+    from_str = " /&*\\"
+    to_str = "_"*len(from_str)
+    transtable = string.maketrans(from_str, to_str)
+    return ugly_name.lower().translate(transtable)
+
+
 def create_test_logs(test_name):
     # touch log filel
     global CURRENT_LOGDIR, TEST_LOGFILE, TEST_START_TIME
     if not CURRENT_LOGDIR:
         raise InfinityException("logging was not configured")
-    nameify = test_name.lower().replace(" ", "_")
-    TEST_LOGFILE = os.path.join(CURRENT_LOGDIR, nameify)
+
+    pretty_name = nameify(test_name)
+    TEST_LOGFILE = os.path.join(CURRENT_LOGDIR, pretty_name)
     TEST_START_TIME = datetime.datetime.now()
     filename = open(TEST_LOGFILE, "a")
     filename.close()

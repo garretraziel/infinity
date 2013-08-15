@@ -166,8 +166,9 @@ class VncTool(object):
             commands = ['capture', f.name]
             self.run_vnc_function(commands)
             opencv_image = cv2.imread(f.name)
-        return Image("screenshot", array=opencv_image,
-                     width=len(opencv_image[0]), height=len(opencv_image))
+        if opencv_image is not None:
+            return Image("screenshot", array=opencv_image,
+                         width=len(opencv_image[0]), height=len(opencv_image))
 
     def log_vm(self, screenshot_name):
         commands = ['capture', screenshot_name]
