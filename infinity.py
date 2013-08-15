@@ -144,19 +144,26 @@ def run(path, config):
         print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + test.name
 
         try:
-            test.run()
+            ok, message = test.run()
+
+            if not ok:
+                sys.stderr.write(message + "\n")
+                failed.append(test)
 
         except InfinityTestException as e:
             test.message = e.message
-            print test.message
+            test.ok = False
+            sys.stderr.write(test.message + "\n")
             failed.append(test)
         except ImageNotFound as e:
             test.message = "Image not found: " + str(e.message)
-            print test.message
+            test.ok = False
+            sys.stderr.write(test.message + "\n")
             failed.append(test)
         except InfinityException as e:
             test.message = e.message
-            print e.message
+            test.ok = False
+            sys.stderr.write(e.message + "\n")
             errors.append(test)
         else:
             passed.append(test)

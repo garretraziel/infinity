@@ -54,10 +54,10 @@ def key_argument_type(argument):
 
     """
     if isinstance(argument, types.ListType):
-        for item in argument[:-1]: # last one can be normal key, others have to be special
+        for item in argument[:-1]:  # last one can be normal key, others have to be special
             if not to_special(item):
                 return "FAIL"
-        if len(argument[-1]) > 1 and not to_special(argument[-1]): # last one should be only one key
+        if len(argument[-1]) > 1 and not to_special(argument[-1]):  # last one should be only one key
             return "FAIL"
         else:
             return "MULTIKEYS"
@@ -134,13 +134,13 @@ class VncTool(object):
         """
         arg_type = key_argument_type(string)
         if arg_type == "MULTIKEYS":
-            keys = [to_special(key) for key in string[:-1]] # convert special keys to KEYMAP
-            last_key = to_special(string[-1]) # try to convert the last one
-            if last_key: # last one is special key
+            keys = [to_special(key) for key in string[:-1]]  # convert special keys to KEYMAP
+            last_key = to_special(string[-1])  # try to convert the last one
+            if last_key:  # last one is special key
                 keys.append(last_key)
-            else: # last one is normal character
+            else:  # last one is normal character
                 keys.append(string[-1])
-            keys = "-".join(keys) # vncdotool expects it that way
+            keys = "-".join(keys)  # vncdotool expects it that way
             self.__type_key(keys)
         elif arg_type == "SPECIAL":
             key = to_special(string)

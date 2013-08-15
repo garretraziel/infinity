@@ -1,4 +1,5 @@
 import os
+import datetime
 from v12n import base
 from xpresserng import Xpresserng
 import inflogging
@@ -19,10 +20,23 @@ class InfinityTest(object):
         self.xpng = None
         self.live_medium = live_medium
         self.verbose = False
+        self.ok = None
 
     def run(self):
-        self.message = self.main(self.xpng)
+        result = self.main(self.xpng)
+
+        if isinstance(result, tuple):
+            self.ok, self.message = result
+        elif result is None:
+            self.ok = True  # I guess...
+            self.message = "[NONE]"
+        else:
+            self.ok = result
+            self.message = str(result)
+
         self.completed = True
+        self.completed_when = datetime.datetime.now()
+        return self.ok, self.message
 
     def build_vm(self):
         created = False
@@ -55,7 +69,7 @@ class InfinityTest(object):
         self.xpng.load_images(self.images)
         inflogging.create_test_logs(self.name)
         if self.record:
-            self.xpng.set_recording(os.path.join(inflogging.CURRENT_LOGDIR, inflogging.nameify(self.name) + ".webm"))
+            self.xpng.set_recording(os.path.join(inflogging.CURRENT_LOGDIR, inflogging.nameify(self.name) + ".avi"))
 
     def tear_down(self):
         base.tear_down(self.vm)

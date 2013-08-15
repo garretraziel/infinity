@@ -8,3 +8,4 @@
   - pak se da pouzit vncviewer -shared -viewonly
 * mazani vsech VM, podivat se na to jak se chovaji
 * LEPSI OUTPUT!!
+* lip se zachovat v chybach v testu - neexistujici obrazek lepsi vystup, neukoncovat cele infinity
