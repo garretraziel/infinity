@@ -146,10 +146,6 @@ def run(path, config):
         try:
             ok, message = test.run()
 
-            if not ok:
-                sys.stderr.write(message + "\n")
-                failed.append(test)
-
         except InfinityTestException as e:
             test.message = e.message
             test.ok = False
@@ -166,7 +162,11 @@ def run(path, config):
             sys.stderr.write(e.message + "\n")
             errors.append(test)
         else:
-            passed.append(test)
+            if not ok:
+                sys.stderr.write(message + "\n")
+                failed.append(test)
+            else:
+                passed.append(test)
 
         print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + test.name + " finished."
 
