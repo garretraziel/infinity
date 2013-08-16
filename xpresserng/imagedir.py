@@ -56,7 +56,7 @@ class ImageDir(object):
         @param dirname: Path of directory containing xpresserng.ini.
         """
         loaded_filenames = set()
-        ini_filename = os.path.join(dirname, "xpresserng.ini")
+        ini_filename = os.path.join(dirname, "images.cfg")
         if os.path.exists(ini_filename):
             config = ConfigParser.ConfigParser()
             config.read(ini_filename)
